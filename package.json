@@ -5,8 +5,12 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "build": "wrangler deploy --dry-run",
-    "types": "wrangler types"
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "build": "tsc",
+    "build:check": "wrangler deploy --dry-run",
+    "types": "wrangler types",
+    "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {
     "meilisearch": "0.52.0"
