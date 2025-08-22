@@ -1,0 +1,62 @@
+name = "meilisearch-integration"
+main = "src/index.ts"
+compatibility_date = "2024-08-21"
+
+# Development/default environment variables - ALIGNED WITH SHARED CONFIG
+[vars]
+NODE_ENV = "development"
+SERVICE_NAME = "meilisearch-integration"
+LOG_LEVEL = "info"
+DATA_SERVICE_URL = "http://localhost:3002"
+CONTENT_STORE_SERVICE_URL = "http://localhost:3001"
+AUTH_SERVICE_URL = "http://localhost:3003"
+MEILISEARCH_URL = "http://localhost:7700"
+CORS_ORIGINS = "http://localhost:3000,http://localhost:3001"
+MAX_FILE_SIZE = "26214400"
+ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+
+[env.staging]
+name = "meilisearch-integration-staging"
+
+[env.staging.vars]
+NODE_ENV = "staging"
+SERVICE_NAME = "meilisearch-integration"
+LOG_LEVEL = "info"
+DATA_SERVICE_URL = "https://data-service-staging.tamylatrading.workers.dev"
+CONTENT_STORE_SERVICE_URL = "https://content-staging.tamyla.com"
+AUTH_SERVICE_URL = "https://auth-staging.tamyla.com"
+MEILISEARCH_URL = "https://search-staging.tamyla.com"
+CORS_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000"
+MAX_FILE_SIZE = "26214400"
+ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+
+[env.production]
+name = "meilisearch-integration"
+
+[env.production.vars]
+NODE_ENV = "production"
+SERVICE_NAME = "meilisearch-integration"
+LOG_LEVEL = "info"
+DATA_SERVICE_URL = "https://data-service.tamylatrading.workers.dev"
+CONTENT_STORE_SERVICE_URL = "https://content.tamyla.com"
+AUTH_SERVICE_URL = "https://auth.tamyla.com"
+MEILISEARCH_URL = "https://search.tamyla.com"
+CORS_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
+MAX_FILE_SIZE = "26214400"
+ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+
+# Environment variables (set these via wrangler secret put)
+# MEILISEARCH_HOST (same as MEILISEARCH_URL)
+# MEILISEARCH_API_KEY 
+# MEILISEARCH_SEARCH_KEY
+# AUTH_JWT_SECRET
+
+# Optional: D1 database binding if needed
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "content-skimmer-db"
+# database_id = "your-d1-database-id"
+
+# Optional: Analytics binding
+# [analytics_engine_datasets]
+# binding = "ANALYTICS"

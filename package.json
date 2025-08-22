@@ -1,0 +1,19 @@
+{
+  "name": "meilisearch-integration",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "wrangler deploy --dry-run",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "meilisearch": "0.52.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.1",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.72.0"
+  }
+}
