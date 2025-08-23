@@ -27,6 +27,9 @@ jobs:
       - name: Run TypeScript build
         run: npm run build
 
+      - name: Run CI safety scan (no D1 writes)
+        run: node ./scripts/ci-scan-no-d1-writes.js
+
       - name: Run tests (if available)
         run: npm test --if-present
 
