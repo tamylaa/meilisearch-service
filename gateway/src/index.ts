@@ -1,0 +1,189 @@
+// Meilisearch Gateway Cloudflare Worker
+// This acts as a secure proxy between content-skimmer and Railway Meilisearch
+
+interface Env {
+  MEILISEARCH_URL: string;      // Railway Meilisearch URL
+  MEILISEARCH_MASTER_KEY: string; // From Railway
+  MEILISEARCH_SEARCH_KEY: string; // From Railway
+  ALLOWED_ORIGINS: string;      // CORS origins
+}
+
+interface SearchRequest {
+  q: string;
+  limit?: number;
+  offset?: number;
+  filter?: string;
+  sort?: string[];
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const method = request.method;
+
+    // CORS handling
+    const corsHeaders = {
+      'Access-Control-Allow-Origin': '*', // Should be env.ALLOWED_ORIGINS in production
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+
+    if (method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+
+    try {
+      let response: Response;
+
+      // Route requests
+      if (path === '/search' && method === 'POST') {
+        response = await handleSearch(request, env);
+      } else if (path === '/documents' && method === 'POST') {
+        response = await handleDocumentIndex(request, env);
+      } else if (path === '/documents' && method === 'DELETE') {
+        response = await handleDocumentDelete(request, env);
+      } else if (path === '/health') {
+        response = await handleHealth(env);
+      } else {
+        response = new Response('Not Found', { status: 404 });
+      }
+
+      // Add CORS headers to all responses
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
+
+      return response;
+
+    } catch (error) {
+      console.error('Gateway error:', error);
+      const errorResponse = new Response(
+        JSON.stringify({ error: 'Internal server error' }), 
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        }
+      );
+      return errorResponse;
+    }
+  },
+};
+
+async function handleSearch(request: Request, env: Env): Promise<Response> {
+  const searchRequest: SearchRequest = await request.json();
+  
+  // Validate search request
+  if (!searchRequest.q || typeof searchRequest.q !== 'string') {
+    return new Response(
+      JSON.stringify({ error: 'Query parameter "q" is required' }), 
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Forward to Meilisearch with search key
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/search`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.MEILISEARCH_SEARCH_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      q: searchRequest.q,
+      limit: Math.min(searchRequest.limit || 20, 100), // Cap at 100
+      offset: searchRequest.offset || 0,
+      filter: searchRequest.filter,
+      sort: searchRequest.sort,
+    }),
+  });
+
+  const result = await meilisearchResponse.json();
+  
+  return new Response(JSON.stringify(result), {
+    status: meilisearchResponse.status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function handleDocumentIndex(request: Request, env: Env): Promise<Response> {
+  // Verify authorization (you should implement proper auth here)
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return new Response(
+      JSON.stringify({ error: 'Authorization required' }), 
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const documents = await request.json();
+  
+  // Forward to Meilisearch with master key for indexing
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/documents`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.MEILISEARCH_MASTER_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(documents),
+  });
+
+  const result = await meilisearchResponse.json();
+  
+  return new Response(JSON.stringify(result), {
+    status: meilisearchResponse.status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function handleDocumentDelete(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const documentId = url.searchParams.get('id');
+  
+  if (!documentId) {
+    return new Response(
+      JSON.stringify({ error: 'Document ID required' }), 
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Forward to Meilisearch with master key for deletion
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/documents/${documentId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${env.MEILISEARCH_MASTER_KEY}`,
+    },
+  });
+
+  const result = await meilisearchResponse.text();
+  
+  return new Response(result, {
+    status: meilisearchResponse.status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+async function handleHealth(env: Env): Promise<Response> {
+  try {
+    const healthResponse = await fetch(`${env.MEILISEARCH_URL}/health`);
+    const health = await healthResponse.json();
+    
+    return new Response(JSON.stringify({
+      gateway: 'ok',
+      meilisearch: health,
+      timestamp: new Date().toISOString(),
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      gateway: 'ok',
+      meilisearch: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}

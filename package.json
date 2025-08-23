@@ -10,6 +10,7 @@
     "build": "tsc",
     "build:check": "wrangler deploy --dry-run",
     "types": "wrangler types",
+    "start:docker": "docker build -t meilisearch-local . && docker run --rm -p 7700:7700 -e MEILI_MASTER_KEY=test meilisearch-local",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "dependencies": {

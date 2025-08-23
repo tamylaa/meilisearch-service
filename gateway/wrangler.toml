@@ -1,0 +1,24 @@
+name = "meilisearch-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "meilisearch-gateway"
+route = { pattern = "search.tamyla.com/*", zone_name = "tamyla.com" }
+
+[env.production.vars]
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
+ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
+
+# Secrets to be set via: wrangler secret put <name>
+# MEILISEARCH_MASTER_KEY - from Railway
+# MEILISEARCH_SEARCH_KEY - from Railway
+
+[env.staging]
+name = "meilisearch-gateway-staging"
+route = { pattern = "search-staging.tamyla.com/*", zone_name = "tamyla.com" }
+
+[env.staging.vars]
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
+ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000"

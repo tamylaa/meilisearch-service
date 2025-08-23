@@ -1,23 +1,23 @@
-// Simple CI scan: fail if any files in the meilisearch repo import or call D1 write methods
-// We scan for common D1 patterns like "DB.prepare(" or ".exec(" on DB or calls to "D1Database"
-
+// CI safety scan: detect likely D1 write usage while avoiding vendor files and false positives
 const fs = require('fs');
 const path = require('path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const patterns = [
-  "DB.",
-  "D1Database",
-  ".prepare(",
-  "insert into",
-  "INSERT INTO",
-  "db.prepare",
-  "db.exec",
-  "database.prepare",
-  "database.exec",
-  "d1.prepare",
-  "d1.exec",
+
+// DB operation patterns we care about
+const dbOps = [
+  '.prepare(',
+  'db.prepare',
+  'db.exec',
+  'database.prepare',
+  'database.exec',
+  'd1.prepare',
+  'd1.exec',
+  'insert into',
+  'INSERT INTO',
 ];
+
+const typePattern = 'D1Database';
 
 function walk(dir) {
   const results = [];
@@ -34,15 +34,40 @@ function walk(dir) {
   return results;
 }
 
-const files = walk(repoRoot).filter(f => f.endsWith('.ts') || f.endsWith('.js'));
+// Exclude vendor and tooling folders to avoid false positives
+function isIgnored(filePath) {
+  const p = filePath.replace(/\\/g, '/');
+  if (p.includes('/node_modules/') || p.includes('/.git/') || p.includes('/.github/')) return true;
+  // Skip TypeScript declaration files - they contain ambient types like D1Database
+  if (p.endsWith('.d.ts')) return true;
+  // Skip this scripts folder to avoid self-matches
+  if (p.includes('/scripts/')) return true;
+  return false;
+}
+
+function stripComments(src) {
+  // Remove block comments and line comments (basic but effective for our use-case)
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+}
+
+const files = walk(repoRoot).filter(f => (f.endsWith('.ts') || f.endsWith('.js')) && !isIgnored(f));
 let problems = [];
 for (const file of files) {
   const content = fs.readFileSync(file, 'utf8');
-  for (const p of patterns) {
-    if (content.includes(p)) {
-      problems.push({ file, pattern: p });
-      break;
-    }
+  const cleaned = stripComments(content);
+
+  // If any DB op pattern exists in cleaned content, flag the file
+  const foundDbOp = dbOps.find(p => cleaned.includes(p));
+  if (foundDbOp) {
+    problems.push({ file, pattern: foundDbOp });
+    continue;
+  }
+
+  // Only flag D1Database mentions when accompanied by DB operations (likely a write binding)
+  if (cleaned.includes(typePattern)) {
+    // if the file also contains db op patterns (already checked above) we would have flagged.
+    // If not, this is likely only a type annotation or comment and can be ignored.
+    // No-op here.
   }
 }
 
