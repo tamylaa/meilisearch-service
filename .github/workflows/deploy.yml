@@ -62,14 +62,10 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
           secrets: |
-            AUTH_JWT_SECRET
-            MEILISEARCH_HOST
-            MEILISEARCH_API_KEY
+            MEILISEARCH_MASTER_KEY
             MEILISEARCH_SEARCH_KEY
         env:
-          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
-          MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}
-          MEILISEARCH_API_KEY: ${{ secrets.MEILISEARCH_API_KEY }}
+          MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
           MEILISEARCH_SEARCH_KEY: ${{ secrets.MEILISEARCH_SEARCH_KEY }}
 
   deploy-production:
@@ -101,12 +97,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env production
           secrets: |
-            AUTH_JWT_SECRET
-            MEILISEARCH_HOST
-            MEILISEARCH_API_KEY
+            MEILISEARCH_MASTER_KEY
             MEILISEARCH_SEARCH_KEY
         env:
-          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
-          MEILISEARCH_HOST: ${{ secrets.MEILISEARCH_HOST }}
-          MEILISEARCH_API_KEY: ${{ secrets.MEILISEARCH_API_KEY }}
+          MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
           MEILISEARCH_SEARCH_KEY: ${{ secrets.MEILISEARCH_SEARCH_KEY }}
