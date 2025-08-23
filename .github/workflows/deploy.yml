@@ -61,12 +61,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
-          secrets: |
-            MEILISEARCH_MASTER_KEY
-            MEILISEARCH_SEARCH_KEY
-        env:
-          MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
-          MEILISEARCH_SEARCH_KEY: ${{ secrets.MEILISEARCH_SEARCH_KEY }}
 
   deploy-production:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -96,9 +90,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env production
-          secrets: |
-            MEILISEARCH_MASTER_KEY
-            MEILISEARCH_SEARCH_KEY
-        env:
-          MEILISEARCH_MASTER_KEY: ${{ secrets.MEILISEARCH_MASTER_KEY }}
-          MEILISEARCH_SEARCH_KEY: ${{ secrets.MEILISEARCH_SEARCH_KEY }}
