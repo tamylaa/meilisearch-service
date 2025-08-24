@@ -3,8 +3,8 @@ import { authenticateRequest } from './auth.js';
 
 export interface Env {
   MEILISEARCH_HOST: string;
-  MEILISEARCH_API_KEY: string;
-  MEILISEARCH_SEARCH_KEY: string;
+  MEILI_MASTER_KEY: string;
+  MEILI_SEARCH_KEY: string;
   AUTH_JWT_SECRET: string;
   // Optional: D1 database binding
   // DB: D1Database;
@@ -32,13 +32,13 @@ class MeilisearchService {
     // Admin client for write operations
     this.client = new MeiliSearch({
       host: env.MEILISEARCH_HOST,
-      apiKey: env.MEILISEARCH_API_KEY,
+      apiKey: env.MEILI_MASTER_KEY,
     });
 
     // Search client for read operations
     this.searchClient = new MeiliSearch({
       host: env.MEILISEARCH_HOST,
-      apiKey: env.MEILISEARCH_SEARCH_KEY,
+      apiKey: env.MEILI_SEARCH_KEY,
     });
 
     this.documentsIndex = this.client.index<DocumentMetadata>('documents');

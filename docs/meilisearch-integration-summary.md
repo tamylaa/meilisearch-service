@@ -38,7 +38,7 @@ Key files:
 - `setupIndex()` — Configure index attributes for search and filters.
 
 ### Environment & Config
-- Uses env vars: `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY` (admin), `MEILISEARCH_SEARCH_KEY` (search), `AUTH_JWT_SECRET`.
+- Uses env vars: `MEILISEARCH_HOST`, `MEILI_MASTER_KEY` (admin), `MEILI_SEARCH_KEY` (search), `AUTH_JWT_SECRET`.
 - `package.json` scripts: `build` (TypeScript compile), `deploy:staging`, `deploy:production`.
 - CI/CD: `.github/workflows/deploy.yml` runs build and deploys to Cloudflare via Wrangler.
 
@@ -66,13 +66,13 @@ Security rationale:
 There are two supported integration patterns; choose based on trust model and operational preferences.
 
 ### A. Direct indexing (content-skimmer → Meili server)
-- `content-skimmer` may use a `MeilisearchProvider` that calls the Meili HTTP API (`/indexes/<index>/documents`) directly using `MEILISEARCH_API_KEY`.
+- `content-skimmer` may use a `MeilisearchProvider` that calls the Meili HTTP API (`/indexes/<index>/documents`) directly using `MEILIS_MASTER_KEY`.
 - Suitable for trusted internal services that can hold admin API keys securely.
 - Responsibility: `content-skimmer` must ensure correct `userId` when indexing.
 
 ### B. Worker gateway (recommended): content-skimmer → `meilisearch` Worker → Meili server
 - `content-skimmer` posts to the Worker (`POST /documents`) with a JWT representing the user or service account.
-- Worker authenticates the request, overrides `userId`, and uses `MEILISEARCH_API_KEY` to index.
+- Worker authenticates the request, overrides `userId`, and uses `MEILIS_MASTER_KEY` to index.
 - Advantages: centralizes auth, ownership enforcement, logging, metrics, and reduces admin key distribution.
 
 ### Typical flow (event-driven indexing)
@@ -95,7 +95,7 @@ There are two supported integration patterns; choose based on trust model and op
 - CI/CD: `.github/workflows/deploy.yml` performs TypeScript build and deploys to Cloudflare using `cloudflare/wrangler-action@v3`.
 - Required GitHub secrets (configure in repo settings):
   - `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-  - `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY`, `MEILISEARCH_SEARCH_KEY`
+  - `MEILISEARCH_HOST`, `MEILI_MASTER_KEY`, `MEILI_SEARCH_KEY`
   - `AUTH_JWT_SECRET`
 - Use `wrangler` for local testing: `npm run dev` (as configured) or `npm run build` plus `wrangler deploy`.
 
@@ -162,11 +162,11 @@ Content-Type: application/json
 
 ## Keys and secrets
 
-Short note on MEILISEARCH_API_KEY / meilisearch_api_key:
+Short note on MEILIS_MASTER_KEY / meilisearch_api_key:
 
-- `MEILISEARCH_API_KEY` is the admin/master key meant only for the Meilisearch Worker. It must be set as an environment secret and never embedded in client configs.
-- `MEILISEARCH_SEARCH_KEY` is a read-only key appropriate for search-only clients if you must bypass the Worker for read-only use; prefer routing reads through the Worker which can enforce user isolation.
-- If you don't yet have these keys: generate them from your Meilisearch admin dashboard or use the master key to create scoped keys via Meilisearch `/keys` API. Store them in GitHub Secrets: `MEILISEARCH_HOST`, `MEILISEARCH_API_KEY`, `MEILISEARCH_SEARCH_KEY`.
+- `MEILI_MASTER_KEY` is the admin/master key meant only for the Meilisearch Worker. It must be set as an environment secret and never embedded in client configs.
+- `MEILI_SEARCH_KEY` is a read-only key appropriate for search-only clients if you must bypass the Worker for read-only use; prefer routing reads through the Worker which can enforce user isolation.
+- If you don't yet have these keys: generate them from your Meilisearch admin dashboard or use the master key to create scoped keys via Meilisearch `/keys` API. Store them in GitHub Secrets: `MEILISEARCH_HOST`, `MEILI_MASTER_KEY`, `MEILI_SEARCH_KEY`.
 
 
 ---

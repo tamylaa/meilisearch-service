@@ -20,8 +20,8 @@ npm run deploy -- --env production
 ```bash
 # Set Meilisearch credentials
 wrangler secret put MEILISEARCH_HOST --env production
-wrangler secret put MEILISEARCH_API_KEY --env production
-wrangler secret put MEILISEARCH_SEARCH_KEY --env production
+wrangler secret put MEILI_MASTER_KEY --env production
+wrangler secret put MEILI_SEARCH_KEY --env production
 ```
 
 ## API Usage Examples
@@ -363,8 +363,8 @@ import { MeilisearchService } from '../src/index.js';
 
 const mockEnv = {
   MEILISEARCH_HOST: 'http://localhost:7700',
-  MEILISEARCH_API_KEY: 'test-key',
-  MEILISEARCH_SEARCH_KEY: 'search-key'
+  MEILI_MASTER_KEY: 'test-key',
+  MEILI_SEARCH_KEY: 'search-key'
 };
 
 describe('MeilisearchService', () => {

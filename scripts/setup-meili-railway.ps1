@@ -1,5 +1,6 @@
+#!/usr/bin/env pwsh
 # setup-meili-railway.ps1
-# Meilisearch Railway setup script - Windows PowerShell v5.1 compatible
+# Meilisearch Railway setup script - portable Windows PowerShell v5.1 / PowerShell Core
 
 param(
     [string]$PublicHost = 'https://meilisearch-service-production-01e0.up.railway.app',

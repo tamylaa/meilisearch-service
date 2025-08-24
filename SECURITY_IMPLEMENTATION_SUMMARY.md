@@ -16,8 +16,8 @@ Based on the exact same pattern used in `data-service` and `content-store-servic
 // UPDATED: Environment interface (src/index.ts)
 export interface Env {
   MEILISEARCH_HOST: string;
-  MEILISEARCH_API_KEY: string;
-  MEILISEARCH_SEARCH_KEY: string;
+  MEILI_MASTER_KEY: string;
+  MEILI_SEARCH_KEY: string;
   AUTH_JWT_SECRET: string; // ✅ Added JWT secret
 }
 ```

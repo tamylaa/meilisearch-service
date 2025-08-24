@@ -176,8 +176,8 @@ const adminKey = await client.generateTenantToken({
 ```bash
 # Set secrets in Cloudflare Workers
 wrangler secret put MEILISEARCH_HOST
-wrangler secret put MEILISEARCH_API_KEY
-wrangler secret put MEILISEARCH_SEARCH_KEY
+wrangler secret put MEILI_MASTER_KEY
+wrangler secret put MEILI_SEARCH_KEY
 ```
 
 ### Environment Variables

@@ -46,8 +46,8 @@ MAX_FILE_SIZE = "26214400"
 ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
 
 # Secrets to be set via GitHub Actions or wrangler secret put:
-# MEILISEARCH_API_KEY (use Railway MEILI_MASTER_KEY: DoU4pizCf4DCVmadOKz_KeP4U0P8TKoDVy3ae_x_qOQ)
-# MEILISEARCH_SEARCH_KEY (use Railway MEILI_SEARCH_KEY: 7ecf7b39343aed23034979f084f4b68908494e5bdc2f7c98d2eae5dbce4edb67)
+# MEILI_MASTER_KEY (use Railway MEILI_MASTER_KEY: DoU4pizCf4DCVmadOKz_KeP4U0P8TKoDVy3ae_x_qOQ)
+# MEILI_SEARCH_KEY (use Railway MEILI_SEARCH_KEY: 7ecf7b39343aed23034979f084f4b68908494e5bdc2f7c98d2eae5dbce4edb67)
 # AUTH_JWT_SECRET (generate a random secret)
 
 # Optional: D1 database binding if needed

@@ -92,12 +92,12 @@ if (-not $repo) {
 }
 
 # Confirm before setting secrets
-$confirm = Read-Host "Proceed to set GitHub Actions secrets MEILISEARCH_HOST, MEILISEARCH_API_KEY, MEILISEARCH_SEARCH_KEY, AUTH_JWT_SECRET for $repo? (y/n)"
+$confirm = Read-Host "Proceed to set GitHub Actions secrets MEILISEARCH_HOST, MEILIS_MASTER_KEY, MEILI_SEARCH_KEY, AUTH_JWT_SECRET for $repo? (y/n)"
 if ($confirm -ne 'y') { Write-Host "Skipping secrets setup"; exit 0 }
 
 gh secret set MEILISEARCH_HOST --body $meiliHost
-gh secret set MEILISEARCH_API_KEY --body $masterKey
-gh secret set MEILISEARCH_SEARCH_KEY --body $searchKey
+gh secret set MEILI_MASTER_KEY --body $masterKey
+gh secret set MEILI_SEARCH_KEY --body $searchKey
 gh secret set AUTH_JWT_SECRET --body $jwtSecret
 
 Write-Host "All done. Verify secrets in GitHub repo settings and open the Railway service to confirm health."

@@ -2,9 +2,9 @@
 // This acts as a secure proxy between content-skimmer and Railway Meilisearch
 
 interface Env {
-  MEILISEARCH_URL: string;      // Railway Meilisearch URL
-  MEILISEARCH_MASTER_KEY: string; // From Railway
-  MEILISEARCH_SEARCH_KEY: string; // From Railway
+  MEILISEARCH_HOST: string;      // Railway Meilisearch URL
+  MEILI_MASTER_KEY: string; // From Railway
+  MEILI_SEARCH_KEY: string; // From Railway
   ALLOWED_ORIGINS: string;      // CORS origins
 }
 
@@ -36,8 +36,8 @@ export default {
     try {
       let response: Response;
 
-      // Route requests
-      if (path === '/search' && method === 'POST') {
+      // Route requests  
+      if ((path === '/search' && method === 'POST') || (path === '/search' && method === 'GET')) {
         response = await handleSearch(request, env);
       } else if (path === '/documents' && method === 'POST') {
         response = await handleDocumentIndex(request, env);
@@ -71,7 +71,21 @@ export default {
 };
 
 async function handleSearch(request: Request, env: Env): Promise<Response> {
-  const searchRequest: SearchRequest = await request.json();
+  let searchRequest: SearchRequest;
+  
+  // Handle both GET and POST requests
+  if (request.method === 'GET') {
+    const url = new URL(request.url);
+    searchRequest = {
+      q: url.searchParams.get('q') || '',
+      limit: parseInt(url.searchParams.get('limit') || '20'),
+      offset: parseInt(url.searchParams.get('offset') || '0'),
+      filter: url.searchParams.get('filter') || undefined,
+      sort: url.searchParams.get('sort')?.split(',') || undefined,
+    };
+  } else {
+    searchRequest = await request.json();
+  }
   
   // Validate search request
   if (!searchRequest.q || typeof searchRequest.q !== 'string') {
@@ -82,10 +96,10 @@ async function handleSearch(request: Request, env: Env): Promise<Response> {
   }
 
   // Forward to Meilisearch with search key
-  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/search`, {
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_HOST}/indexes/content/search`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.MEILISEARCH_SEARCH_KEY}`,
+      'Authorization': `Bearer ${env.MEILI_SEARCH_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -118,10 +132,10 @@ async function handleDocumentIndex(request: Request, env: Env): Promise<Response
   const documents = await request.json();
   
   // Forward to Meilisearch with master key for indexing
-  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/documents`, {
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_HOST}/indexes/content/documents`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.MEILISEARCH_MASTER_KEY}`,
+      'Authorization': `Bearer ${env.MEILI_MASTER_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(documents),
@@ -136,22 +150,61 @@ async function handleDocumentIndex(request: Request, env: Env): Promise<Response
 }
 
 async function handleDocumentDelete(request: Request, env: Env): Promise<Response> {
-  const url = new URL(request.url);
-  const documentId = url.searchParams.get('id');
-  
-  if (!documentId) {
+  // Verify authorization
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return new Response(
-      JSON.stringify({ error: 'Document ID required' }), 
+      JSON.stringify({ error: 'Authorization required' }), 
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  let documentIds: string[] = [];
+  
+  // Handle different delete request formats
+  const url = new URL(request.url);
+  const idParam = url.searchParams.get('id');
+  
+  if (idParam) {
+    // Single document ID from query parameter
+    documentIds = [idParam];
+  } else {
+    // Bulk delete from request body
+    try {
+      const body = await request.json() as any;
+      if (body.ids && Array.isArray(body.ids)) {
+        documentIds = body.ids;
+      } else if (body.id) {
+        documentIds = [body.id];
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'Document ID(s) required' }), 
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON or missing document IDs' }), 
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  if (documentIds.length === 0) {
+    return new Response(
+      JSON.stringify({ error: 'No document IDs provided' }), 
       { status: 400, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
   // Forward to Meilisearch with master key for deletion
-  const meilisearchResponse = await fetch(`${env.MEILISEARCH_URL}/indexes/content/documents/${documentId}`, {
-    method: 'DELETE',
+  const meilisearchResponse = await fetch(`${env.MEILISEARCH_HOST}/indexes/content/documents/delete-batch`, {
+    method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.MEILISEARCH_MASTER_KEY}`,
+      'Authorization': `Bearer ${env.MEILI_MASTER_KEY}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify(documentIds),
   });
 
   const result = await meilisearchResponse.text();
@@ -164,7 +217,7 @@ async function handleDocumentDelete(request: Request, env: Env): Promise<Respons
 
 async function handleHealth(env: Env): Promise<Response> {
   try {
-    const healthResponse = await fetch(`${env.MEILISEARCH_URL}/health`);
+    const healthResponse = await fetch(`${env.MEILISEARCH_HOST}/health`);
     const health = await healthResponse.json();
     
     return new Response(JSON.stringify({

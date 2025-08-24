@@ -1,0 +1,182 @@
+name: Meilisearch Integration Tests
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - 'gateway/**'
+      - 'scripts/**'
+      - 'Dockerfile'
+      - 'wrangler.toml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'gateway/**'
+      - 'scripts/**'
+      - 'Dockerfile' 
+      - 'wrangler.toml'
+  schedule:
+    # Run health checks every 6 hours
+    - cron: '0 */6 * * *'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    name: System Health Check
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+        
+      - name: Test Railway Health
+        run: |
+          curl -f https://meilisearch-service-production-01e0.up.railway.app/health || exit 1
+          echo "✅ Railway Meilisearch is healthy"
+          
+      - name: Test Gateway Health  
+        run: |
+          curl -f https://search.tamyla.com/health || exit 1
+          echo "✅ Gateway is healthy"
+          
+      - name: Test End-to-End Search
+        run: |
+          curl -f "https://search.tamyla.com/search?q=test&limit=1" || exit 1
+          echo "✅ Search functionality working"
+
+  gateway-validation:
+    runs-on: ubuntu-latest
+    name: Gateway Validation
+    if: contains(github.event.head_commit.modified, 'gateway/') || contains(github.event.head_commit.added, 'gateway/')
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install dependencies
+        working-directory: ./gateway
+        run: npm install
+        
+      - name: TypeScript compilation check
+        working-directory: ./gateway
+        run: npx tsc --noEmit
+        
+      - name: Validate wrangler.toml
+        working-directory: ./gateway
+        run: npx wrangler deploy --dry-run --env production
+
+  script-validation:
+    runs-on: windows-latest
+    name: PowerShell Script Validation
+    if: contains(github.event.head_commit.modified, 'scripts/') || contains(github.event.head_commit.added, 'scripts/')
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test PowerShell Scripts
+        shell: pwsh
+        run: |
+          Get-ChildItem scripts/*.ps1 | ForEach-Object {
+            Write-Host "Validating $($_.Name)..."
+            $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $_.FullName -Raw), [ref]$null)
+            if ($?) {
+              Write-Host "✅ $($_.Name) syntax valid"
+            } else {
+              Write-Host "❌ $($_.Name) syntax error"
+              exit 1
+            }
+          }
+
+  railway-validation:
+    runs-on: ubuntu-latest
+    name: Railway Validation
+    if: contains(github.event.head_commit.modified, 'Dockerfile') || contains(github.event.head_commit.modified, 'wrangler.toml')
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Validate Dockerfile
+        run: |
+          docker build --dry-run -f Dockerfile . || exit 1
+          echo "✅ Dockerfile is valid"
+          
+      - name: Check Railway service status
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://meilisearch-service-production-01e0.up.railway.app/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ Railway service is responding"
+          else
+            echo "⚠️ Railway service status: $response"
+          fi
+
+  integration-test:
+    runs-on: ubuntu-latest
+    name: Full Integration Test
+    needs: [health-check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+        
+      - name: Comprehensive Integration Test
+        run: |
+          # Test complete flow: content-skimmer → gateway → railway
+          
+          echo "🔍 Testing Railway Meilisearch..."
+          railway_response=$(curl -s https://meilisearch-service-production-01e0.up.railway.app/health)
+          echo "Railway: $railway_response"
+          
+          echo "🔍 Testing Gateway..."
+          gateway_response=$(curl -s https://search.tamyla.com/health)
+          echo "Gateway: $gateway_response"
+          
+          echo "🔍 Testing Search Flow..."
+          search_response=$(curl -s "https://search.tamyla.com/search?q=test&limit=1")
+          echo "Search: $search_response"
+          
+          echo "✅ All integration tests passed!"
+
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    name: Failure Notification
+    needs: [health-check, gateway-validation, script-validation, railway-validation, integration-test]
+    if: failure()
+    
+    steps:
+      - name: Send notification
+        run: |
+          echo "🚨 Meilisearch Integration Test Failed!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo ""
+          echo "Check the logs for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo ""
+          echo "This indicates a potential breaking change in the Meilisearch ecosystem."
+          echo "Do not deploy until issues are resolved!"

@@ -20,9 +20,8 @@ npm install
 
 # Set up environment variables
 wrangler secret put MEILISEARCH_HOST
-wrangler secret put MEILISEARCH_API_KEY  
-wrangler secret put MEILISEARCH_SEARCH_KEY
-
+wrangler secret put MEILI_MASTER_KEY  
+wrangler secret put MEILI_SEARCH_KEY
 # Deploy to production
 npm run deploy
 ```
@@ -66,8 +65,8 @@ meilisearch-integration/
 
 ### Environment Variables (Cloudflare Secrets)
 - `MEILISEARCH_HOST`: Your Meilisearch endpoint URL
-- `MEILISEARCH_API_KEY`: Master key for admin operations
-- `MEILISEARCH_SEARCH_KEY`: Read-only key for search operations
+- `MEILI_MASTER_KEY`: Master key for admin operations
+- `MEILI_SEARCH_KEY`: Read-only key for search operations
 
 ### Optional D1 Binding
 ```toml

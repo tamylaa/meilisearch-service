@@ -14,8 +14,8 @@
 // ❌ CURRENT IMPLEMENTATION
 export interface Env {
   MEILISEARCH_HOST: string;
-  MEILISEARCH_API_KEY: string;
-  MEILISEARCH_SEARCH_KEY: string;
+  MEILI_MASTER_KEY: string;
+  MEILI_SEARCH_KEY: string;
   // AUTH_JWT_SECRET is available but UNUSED!
 }
 
@@ -56,8 +56,8 @@ async searchDocuments(query: string, userId: string, filters?: string, facets?: 
 // Add to Env interface
 export interface Env {
   MEILISEARCH_HOST: string;
-  MEILISEARCH_API_KEY: string;
-  MEILISEARCH_SEARCH_KEY: string;
+  MEILI_MASTER_KEY: string;
+  MEILI_SEARCH_KEY: string;
   AUTH_JWT_SECRET: string; // ✅ Already available!
 }
 

@@ -61,6 +61,14 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
+          secrets: |
+            MEILI_MASTER_KEY
+            MEILI_SEARCH_KEY
+            AUTH_JWT_SECRET
+        env:
+          MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
+          MEILI_SEARCH_KEY: ${{ secrets.MEILI_SEARCH_KEY }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
 
   deploy-production:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -90,3 +98,11 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env production
+          secrets: |
+            MEILI_MASTER_KEY
+            MEILI_SEARCH_KEY
+            AUTH_JWT_SECRET
+        env:
+          MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
+          MEILI_SEARCH_KEY: ${{ secrets.MEILI_SEARCH_KEY }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}

@@ -18,8 +18,8 @@ CLOUDFLARE_ACCOUNT_ID    - Your Cloudflare Account ID
 #### **Meilisearch Secrets**
 ```
 MEILISEARCH_HOST         - Your Meilisearch server URL (e.g., https://your-meilisearch.com)
-MEILISEARCH_API_KEY      - Your Meilisearch admin/write API key
-MEILISEARCH_SEARCH_KEY   - Your Meilisearch search-only API key
+MEILI_MASTER_KEY      - Your Meilisearch admin/write API key
+MEILI_SEARCH_KEY   - Your Meilisearch search-only API key
 ```
 
 #### **Authentication Secret**
