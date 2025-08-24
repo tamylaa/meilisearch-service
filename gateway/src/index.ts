@@ -34,15 +34,25 @@ export default {
     }
 
     try {
+  // Resolve canonical secrets with fallback to legacy names (safe compatibility layer)
+  // This allows us to roll out canonical names (MEILI_*) without immediately deleting
+  // existing legacy secrets (MEILISEARCH_*).
+  const masterKey = (env as any).MEILI_MASTER_KEY || (env as any).MEILISEARCH_MASTER_KEY || '';
+  const searchKey = (env as any).MEILI_SEARCH_KEY || (env as any).MEILISEARCH_SEARCH_KEY || '';
+
       let response: Response;
 
       // Route requests  
       if ((path === '/search' && method === 'POST') || (path === '/search' && method === 'GET')) {
-        response = await handleSearch(request, env);
+        // pass resolved keys via a small wrapper object so handlers can use canonical names
+        const handlerEnv = Object.assign({}, env, { MEILI_MASTER_KEY: masterKey, MEILI_SEARCH_KEY: searchKey });
+        response = await handleSearch(request, handlerEnv as Env);
       } else if (path === '/documents' && method === 'POST') {
-        response = await handleDocumentIndex(request, env);
+        const handlerEnv = Object.assign({}, env, { MEILI_MASTER_KEY: masterKey, MEILI_SEARCH_KEY: searchKey });
+        response = await handleDocumentIndex(request, handlerEnv as Env);
       } else if (path === '/documents' && method === 'DELETE') {
-        response = await handleDocumentDelete(request, env);
+        const handlerEnv = Object.assign({}, env, { MEILI_MASTER_KEY: masterKey, MEILI_SEARCH_KEY: searchKey });
+        response = await handleDocumentDelete(request, handlerEnv as Env);
       } else if (path === '/health') {
         response = await handleHealth(env);
       } else {
