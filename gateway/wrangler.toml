@@ -6,6 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 # Default environment - accessible via workers.dev
 [vars]
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
 ALLOWED_ORIGINS = "*"
 
 [env.production]
@@ -14,6 +15,7 @@ route = { pattern = "search.tamyla.com/*", zone_name = "tamyla.com" }
 
 [env.production.vars]
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
 ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
 
 [env.staging]
