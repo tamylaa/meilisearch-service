@@ -11,7 +11,7 @@ ALLOWED_ORIGINS = "*"
 
 [env.staging]
 name = "meilisearch-gateway-staging"
-route = { pattern = "search-staging.tamyla.com/*", zone_name = "tamyla.com" }
+# No custom route - uses workers.dev domain
 
 [env.staging.vars]
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"

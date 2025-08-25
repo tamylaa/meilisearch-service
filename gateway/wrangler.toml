@@ -20,10 +20,11 @@ ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
 
 [env.staging]
 name = "meilisearch-gateway-staging"
-route = { pattern = "search-staging.tamyla.com/*", zone_name = "tamyla.com" }
+# No custom route - uses workers.dev domain
 
 [env.staging.vars]
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
 ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000"
 
 # Secrets to be set via: wrangler secret put <name> [--env environment]
