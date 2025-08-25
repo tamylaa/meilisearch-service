@@ -79,6 +79,12 @@ jobs:
         run: |
           echo "Testing staging gateway health..."
           curl -f https://search-staging.tamyla.com/health || echo "Staging health check failed"
+          echo "Testing search endpoint auth requirement..."
+          if curl -f "https://search-staging.tamyla.com/search?q=test&limit=1" 2>/dev/null; then
+            echo "❌ Search endpoint should require authentication!"
+          else
+            echo "✅ Search endpoint correctly requires authentication"
+          fi
 
   deploy-production:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -121,6 +127,15 @@ jobs:
         run: |
           echo "Testing production gateway health..."
           curl -f https://search.tamyla.com/health
+          echo "✅ Health endpoint working"
+          
+          echo "Testing search endpoint (should require auth)..."
+          if curl -f "https://search.tamyla.com/search?q=test&limit=1" 2>/dev/null; then
+            echo "❌ Search endpoint should require authentication!"
+            exit 1
+          else
+            echo "✅ Search endpoint correctly requires authentication"
+          fi
           
       - name: Setup production index (optional)
         run: |
