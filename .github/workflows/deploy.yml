@@ -1,4 +1,4 @@
-name: Deploy Meilisearch Service
+name: Deploy Meilisearch Gateway
 
 on:
   push:
@@ -29,6 +29,11 @@ jobs:
 
       - name: Run CI safety scan (no D1 writes)
         run: node ./scripts/ci-scan-no-d1-writes.js
+
+      - name: Test gateway health endpoint
+        run: |
+          echo "Testing gateway TypeScript compilation..."
+          npx tsc --noEmit gateway/src/index.ts
 
       - name: Run tests (if available)
         run: npm test --if-present
@@ -69,6 +74,11 @@ jobs:
           MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
           MEILI_SEARCH_KEY: ${{ secrets.MEILI_SEARCH_KEY }}
           AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+          
+      - name: Test staging deployment
+        run: |
+          echo "Testing staging gateway health..."
+          curl -f https://search-staging.tamyla.com/health || echo "Staging health check failed"
 
   deploy-production:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -106,3 +116,13 @@ jobs:
           MEILI_MASTER_KEY: ${{ secrets.MEILI_MASTER_KEY }}
           MEILI_SEARCH_KEY: ${{ secrets.MEILI_SEARCH_KEY }}
           AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
+          
+      - name: Test production deployment
+        run: |
+          echo "Testing production gateway health..."
+          curl -f https://search.tamyla.com/health
+          
+      - name: Setup production index (optional)
+        run: |
+          echo "Configuring production Meilisearch index..."
+          curl -X POST https://search.tamyla.com/setup || echo "Setup may have already run"

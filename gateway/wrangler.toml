@@ -10,7 +10,7 @@ MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
 ALLOWED_ORIGINS = "*"
 
 [env.production]
-name = "meilisearch-gateway-prod"
+name = "meilisearch-gateway"
 route = { pattern = "search.tamyla.com/*", zone_name = "tamyla.com" }
 
 [env.production.vars]
@@ -28,4 +28,5 @@ ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000
 
 # Secrets to be set via: wrangler secret put <name> [--env environment]
 # MEILI_MASTER_KEY - from Railway
-# MEILI_SEARCH_KEY - from Railway
+# MEILI_SEARCH_KEY - from Railway  
+# AUTH_JWT_SECRET - for JWT token validation

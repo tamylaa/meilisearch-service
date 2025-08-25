@@ -1,53 +1,36 @@
-name = "meilisearch-integration"
-main = "src/index.ts"
-compatibility_date = "2024-08-21"
+name = "meilisearch-gateway"
+main = "gateway/src/index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
 
-# Development/default environment variables - ALIGNED WITH SHARED CONFIG
+# Development/default environment variables
 [vars]
-NODE_ENV = "development"
-SERVICE_NAME = "meilisearch-integration"
-LOG_LEVEL = "info"
-DATA_SERVICE_URL = "http://localhost:3002"
-CONTENT_STORE_SERVICE_URL = "http://localhost:3001"
-AUTH_SERVICE_URL = "http://localhost:3003"
-MEILISEARCH_HOST = "http://localhost:7700"
-CORS_ORIGINS = "http://localhost:3000,http://localhost:3001"
-MAX_FILE_SIZE = "26214400"
-ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
+ALLOWED_ORIGINS = "*"
 
 [env.staging]
-name = "meilisearch-integration-staging"
+name = "meilisearch-gateway-staging"
+route = { pattern = "search-staging.tamyla.com/*", zone_name = "tamyla.com" }
 
 [env.staging.vars]
-NODE_ENV = "staging"
-SERVICE_NAME = "meilisearch-integration"
-LOG_LEVEL = "info"
-DATA_SERVICE_URL = "https://data-service-staging.tamylatrading.workers.dev"
-CONTENT_STORE_SERVICE_URL = "https://content-staging.tamyla.com"
-AUTH_SERVICE_URL = "https://auth-staging.tamyla.com"
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
-CORS_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000"
-MAX_FILE_SIZE = "26214400"
-ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
+ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com,http://localhost:3000"
 
 [env.production]
-name = "meilisearch-integration"
+name = "meilisearch-gateway"
+route = { pattern = "search.tamyla.com/*", zone_name = "tamyla.com" }
 
 [env.production.vars]
-NODE_ENV = "production"
-SERVICE_NAME = "meilisearch-integration"
-LOG_LEVEL = "info"
-DATA_SERVICE_URL = "https://data-service.tamylatrading.workers.dev"
-CONTENT_STORE_SERVICE_URL = "https://content.tamyla.com"
-AUTH_SERVICE_URL = "https://auth.tamyla.com"
 MEILISEARCH_HOST = "https://meilisearch-service-production-01e0.up.railway.app"
-CORS_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
-MAX_FILE_SIZE = "26214400"
-ALLOWED_FILE_TYPES = "image/jpeg,image/png,image/webp,image/gif,application/pdf,video/mp4,video/webm,audio/mpeg,audio/wav"
+MEILISEARCH_URL = "https://meilisearch-service-production-01e0.up.railway.app"
+ALLOWED_ORIGINS = "https://tamyla.com,https://*.tamyla.com"
 
-# Secrets to be set via GitHub Actions or wrangler secret put:
-# MEILI_MASTER_KEY (use Railway MEILI_MASTER_KEY: DoU4pizCf4DCVmadOKz_KeP4U0P8TKoDVy3ae_x_qOQ)
-# MEILI_SEARCH_KEY (use Railway MEILI_SEARCH_KEY: 7ecf7b39343aed23034979f084f4b68908494e5bdc2f7c98d2eae5dbce4edb67)
+# Secrets to be set via: wrangler secret put <name> [--env environment]
+# MEILI_MASTER_KEY - from Railway
+# MEILI_SEARCH_KEY - from Railway  
+# AUTH_JWT_SECRET - for JWT token validation
 # AUTH_JWT_SECRET (generate a random secret)
 
 # Optional: D1 database binding if needed
